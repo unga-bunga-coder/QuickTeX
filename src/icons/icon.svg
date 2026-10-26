@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Pocket TeX icon: ruled paper, red margin line, an integral sign. Full bleed, so it also works as a maskable icon. -->
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#26468c" stroke-opacity=".12" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="512" height="512" fill="#f6f7fb"/>
+  <rect width="512" height="512" fill="url(#grid)"/>
+  <rect x="150" width="8" height="512" fill="#cf4a3e" fill-opacity=".8"/>
+  <path d="M346 132c-8-30-58-34-66 14l-38 224c-8 46-56 42-66 14" fill="none" stroke="#1a2132" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="346" cy="132" r="22" fill="#1a2132"/>
+  <circle cx="176" cy="384" r="22" fill="#1a2132"/>
+</svg>

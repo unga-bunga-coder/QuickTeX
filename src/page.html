@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pocket TeX</title>
+<meta name="theme-color" content="%CHROME%" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="%CHROME_DARK%" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pocket TeX">
+<style>
+/*FONTS*/
+/* Layout: one pane, like a ruled maths notebook. Header on top, the note fills the screen, key row rides above the keyboard. */
+:root{
+  --paper:#f6f7fb; --grid:rgba(38,70,140,.075); --ink:#1a2132; --muted:#5b6478;
+  --margin:#cf4a3e; --chrome:#e9edf4; --line:#d3d9e5; --key:#ffffff; --src:rgba(38,70,140,.07);
+  --def:#2c5aa0; --ex:#2f7a4f; --err:#b3261e;
+  --f-prose:"STIX Two Text","Cambria Math",Cambria,Georgia,serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#13161c; --grid:rgba(150,175,220,.06); --ink:#e3e7ef; --muted:#98a1b5;
+  --margin:#ff7b6c; --chrome:#1b2029; --line:#2d3441; --key:#252b36; --src:rgba(150,175,220,.10);
+  --def:#8db4f0; --ex:#7fcf9f; --err:#ff8a80; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#13161c; --grid:rgba(150,175,220,.06); --ink:#e3e7ef; --muted:#98a1b5;
+  --margin:#ff7b6c; --chrome:#1b2029; --line:#2d3441; --key:#252b36; --src:rgba(150,175,220,.10);
+  --def:#8db4f0; --ex:#7fcf9f; --err:#ff8a80; color-scheme:dark }
+
+html,body{height:100%}
+[hidden]{display:none !important}
+body{margin:0;background:var(--paper);color:var(--ink);overflow:hidden;font-family:var(--f-mono)}
+#app{position:fixed;left:0;right:0;top:0;height:100%;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--margin);outline-offset:1px}
+
+/* header */
+.bar{display:flex;align-items:center;gap:8px;flex:none;min-height:44px;background:var(--chrome);border-bottom:1px solid var(--line);
+  padding:calc(6px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 6px max(12px,env(safe-area-inset-left,0px))}
+.bar h1{flex:1;min-width:0;margin:0;font:600 13px/1.2 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.btn{font-size:12px;padding:7px 10px;border:1px solid var(--line);background:var(--key);border-radius:6px}
+.btn[aria-pressed="true"]{border-color:var(--margin);color:var(--margin)}
+
+/* the note */
+#ed{flex:1;min-height:0;display:flex}
+#ed .cm-editor{flex:1;min-width:0;height:100%;background:var(--paper);color:var(--ink)}
+#ed .cm-editor.cm-focused{outline:none}
+#ed .cm-scroller{font:400 18px/1.6 var(--f-prose);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;background-attachment:local}
+#ed .cm-content{max-width:46rem;padding:16px max(16px,env(safe-area-inset-right,0px)) 45vh 44px;caret-color:var(--margin);
+  background:linear-gradient(90deg,transparent 29px,color-mix(in srgb,var(--margin) 55%,transparent) 29px,color-mix(in srgb,var(--margin) 55%,transparent) 30px,transparent 30px) no-repeat}
+#ed .cm-line{padding:0 2px}
+#ed .cm-cursor{border-left:2px solid var(--margin)}
+#ed .cm-selectionBackground,#ed .cm-content ::selection{background:color-mix(in srgb,var(--margin) 22%,transparent)}
+
+/* rendered pieces */
+.pt-src{font:15px/1.6 var(--f-mono);background:var(--src);border-radius:3px}
+.pt-math svg{vertical-align:middle}
+.pt-math-d{display:block;text-align:center;overflow-x:auto;overflow-y:hidden;padding:.3em 0;cursor:text}
+span.pt-math{cursor:text}
+.pt-math mjx-container[display="true"]{margin:0 !important}
+.pt-raw{font:14px var(--f-mono);color:var(--muted)}
+.pt-texerr{font:14px var(--f-mono);color:var(--err);text-decoration:underline dashed;text-underline-offset:3px}
+.pt-h{font-weight:600;line-height:1.25}
+.pt-h1{font-size:1.5em;padding-top:.4em !important}
+.pt-h2{font-size:1.22em;padding-top:.3em !important}
+.pt-h3{font-size:1.06em;font-style:italic}
+.pt-label{font-weight:600}
+.pt-label-title{font-weight:400}
+.pt-label-thm{color:var(--margin)} .pt-label-def{color:var(--def)} .pt-label-ex{color:var(--ex)}
+.pt-label-pf,.pt-label-rmk{font-style:italic;font-weight:400}
+.pt-env-thm,.pt-env-def,.pt-env-ex,.pt-env-q{border-left:1px solid var(--line);border-right:1px solid var(--line);
+  padding-left:10px !important;padding-right:10px !important;background:color-mix(in srgb,var(--paper) 82%,transparent)}
+.pt-env-thm.pt-env-first,.pt-env-def.pt-env-first,.pt-env-ex.pt-env-first,.pt-env-q.pt-env-first{border-top:1px solid var(--line);padding-top:6px !important}
+.pt-env-thm.pt-env-last,.pt-env-def.pt-env-last,.pt-env-ex.pt-env-last,.pt-env-q.pt-env-last{border-bottom:1px solid var(--line);padding-bottom:6px !important}
+.pt-qed{float:right;padding-left:.5em}
+.pt-li{padding-left:calc(2px + 1.2em) !important;text-indent:-1.2em}
+.pt-bullet{display:inline-block;width:1.2em;text-indent:0;color:var(--muted)}
+.cm-tooltip.cm-tooltip-above:has(.pt-bubble),.cm-tooltip:has(.pt-bubble){border:1px solid var(--line);background:var(--chrome);color:var(--ink);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.pt-bubble{padding:6px 10px;max-width:min(90vw,40rem);overflow-x:auto;font:18px var(--f-prose)}
+
+/* key row */
+.keys{display:flex;gap:6px;overflow-x:auto;flex:none;background:var(--chrome);border-top:1px solid var(--line);scrollbar-width:none;
+  padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.keys::-webkit-scrollbar{display:none}
+.key{flex:none;min-width:40px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:var(--key);
+  font:15px var(--f-mono);display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.key:active{background:var(--src)}
+.key.prime{color:var(--margin);border-color:var(--margin)}
+.key.mode{font-size:11px;letter-spacing:.05em}
+
+/* drawer + sheets */
+.scrim{position:fixed;inset:0;background:rgba(10,14,22,.45);z-index:20}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(340px,88vw);background:var(--chrome);z-index:21;display:flex;flex-direction:column;
+  border-right:1px solid var(--line);padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.drawer header,.sheet header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.drawer header b,.sheet header b{flex:1;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.notes{flex:1;overflow-y:auto;list-style:none;margin:0;padding:6px 0}
+.notes li{display:flex}
+.notes .open{flex:1;min-width:0;text-align:left;padding:10px 14px;display:grid;gap:2px}
+.notes .open span{font:16px/1.3 var(--f-prose);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notes .open small{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.notes li.cur .open span{color:var(--margin)}
+.notes .del{padding:0 14px;color:var(--muted);font-size:11px}
+.notes .del.armed{color:var(--err);font-weight:600}
+.drawer footer{border-top:1px solid var(--line);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px}
+.drawer footer .note{width:100%;font-size:10px;color:var(--muted);line-height:1.45}
+.sheet{position:fixed;inset:auto 0 0 0;max-height:85%;z-index:31;background:var(--chrome);border-top:1px solid var(--line);
+  display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:700px){.sheet{inset:8% auto auto 50%;transform:translateX(-50%);width:640px;max-height:84%;border:1px solid var(--line);border-radius:8px}}
+.sheet .body{overflow:auto;padding:12px 16px;display:grid;gap:10px}
+.sheet textarea{width:100%;min-height:260px;font:13px/1.45 var(--f-mono);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+.sheet p{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.sheet p.bad{color:var(--err)}
+.cheat{width:100%;border-collapse:collapse;font-size:12.5px}
+.cheat td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.cheat td:first-child{color:var(--margin);white-space:nowrap;font-weight:600}
+.cheat th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 6px 4px}
+.toast{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);
+  padding:8px 14px;border-radius:6px;font-size:12px;z-index:40}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn" id="menuBtn" aria-label="Notes and settings">☰</button>
+    <h1 id="noteTitle">Pocket TeX</h1>
+    <span class="status" id="status">loading</span>
+    <button class="btn" id="srcBtn" aria-pressed="false" title="Show all LaTeX source">&lt;/&gt;</button>
+  </div>
+  <div id="ed"></div>
+  <div class="keys" id="keys" role="toolbar" aria-label="LaTeX keys"></div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<nav class="drawer" id="drawer" hidden>
+  <header><b>Notes</b><button class="btn" id="newBtn">+ New</button></header>
+  <ul class="notes" id="notes"></ul>
+  <footer>
+    <button class="btn" id="macrosBtn">Macros</button>
+    <button class="btn" id="cheatBtn">Shortcuts</button>
+    <button class="btn" id="copyTexBtn">Copy .tex</button>
+    <button class="btn" id="saveTexBtn">Save .tex</button>
+    <button class="btn" id="exportBtn">Export all notes</button>
+    <button class="btn" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <span class="note">Notes are saved on this device only. Export a backup now and then.</span>
+  </footer>
+</nav>
+
+<section class="sheet" id="macroSheet" hidden aria-label="Macros">
+  <header><b>Macros (preamble)</b><button class="btn" id="macroDone">Done</button></header>
+  <div class="body">
+    <p>Every <code>\newcommand</code> here works in all notes and goes into the .tex export.</p>
+    <textarea id="preambleInput" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+    <p id="preambleErr"></p>
+  </div>
+</section>
+<section class="sheet" id="cheatSheet" hidden aria-label="Shortcuts">
+  <header><b>Shortcuts</b><button class="btn" id="cheatDone">Done</button></header>
+  <div class="body"><table class="cheat" id="cheatTable"></table></div>
+</section>
+<section class="sheet" id="texSheet" hidden aria-label="LaTeX export">
+  <header><b>LaTeX export</b><button class="btn" id="texDone">Done</button></header>
+  <div class="body"><p>Copying isn't allowed here, so the text is selected below.</p><textarea id="texOut" readonly></textarea></div>
+</section>
+<div class="toast" id="toast" hidden></div>
+<button class="toast" id="updateBtn" hidden>Update available, tap to reload</button>
+
+<script>
+window.MathJax = {
+  loader:{load:[]}, tex:{packages:{'[+]':['mathtools','cancel']}}, svg:{fontCache:'local'},
+  options:{enableMenu:false},
+  startup:{typeset:false, ready(){ MathJax.startup.defaultReady(); window.__onMathJax && window.__onMathJax() }}
+};
+</script>
+<script src="mathjax.js" async></script>
+<!-- CodeMirror 6 (state, view, commands, autocomplete), bundled with esbuild -->
+<script>/*VENDOR*/</script>
+<script>/*CORE*/</script>
+<script>/*STORE*/</script>
+<script>/*APP*/</script>
+</body>
+</html>

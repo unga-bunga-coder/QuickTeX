@@ -1,0 +1,25 @@
+import { readFileSync } from "node:fs"; import vm from "node:vm";
+const ctx={console}; vm.createContext(ctx); vm.runInContext(readFileSync("src/core.js","utf8")+";this.api={parseBlocks,tokenize,findMath,inMathAt,expandSnippet,jumpTarget,titleOf,toLatex,mergeBackup,WELCOME}",ctx);
+const A=ctx.api; let fails=0;
+const t=(name,a,b)=>{ const ok=JSON.stringify(a)===JSON.stringify(b); if(!ok){fails++; console.log('FAIL',name,JSON.stringify(a),'expected',JSON.stringify(b))} };
+t('blocks',A.parseBlocks(A.WELCOME).map(b=>b.kind+(b.num||'')).join(' '),'heading env1 env2 env heading list');
+const s='a $x$ b';  const m=A.findMath(s)[0]; t('pos',[m.from,m.to,m.innerFrom,s.slice(m.from,m.to)],[2,5,3,'$x$']);
+t('display', A.findMath('p\n$$\ny\n$$\nq').map(m=>[m.d,m.v]), [[true,'\ny\n']]);
+t('open stays in block', A.findMath('a $x\n\nb $y$').map(m=>[m.open,m.v]), [[true,'x'],[false,'y']]);
+t('inMath', [A.inMathAt('hi $x',5),A.inMathAt('hi $x$ y',8),A.inMathAt('$$\na',4),A.inMathAt('\\$5 a',5)],[true,false,true,false]);
+t('mk',A.expandSnippet('so mk',false),{del:2,ins:'$¦$'});
+t('x1',A.expandSnippet('$x1',true),{del:2,ins:'x_1'});
+t('x12',A.expandSnippet('$x_12',true),{del:4,ins:'x_{12}'});
+t('\\sq',A.expandSnippet('$\\sq',true),null);
+t('xbar',A.expandSnippet('$xbar',true),{del:4,ins:'\\overline{x}'});
+t('<=>',A.expandSnippet('$a \\le >',true),{del:5,ins:'\\iff '});
+t('jump',[A.jumpTarget('\\frac{a}{}',7),A.jumpTarget('$x$ m',2)],[9,3]);
+t('title',A.titleOf(A.WELCOME),'Example: why √2 is irrational');
+t('tex',A.toLatex(A.WELCOME,'').includes('\\begin{proof}\nSuppose'),true);
+const nb={notes:{a:{id:'a',body:'old',created:1,updated:5},b:{id:'b',body:'mine',created:1,updated:9}},preambleUpdated:3};
+const mg=A.mergeBackup(nb,{preamble:'P',preambleUpdated:4,notes:[{id:'a',body:'new',created:1,updated:6},{id:'b',body:'theirs',updated:8},
+  {id:'c',body:'added',updated:2},{id:'__proto__',body:'x',updated:9},{id:'d',body:7,updated:1},null]});
+t('merge',[mg.notes.map(n=>n.id+':'+n.body).join(),mg.notes[1].created,mg.book],['a:new,c:added',2,{preamble:'P',preambleUpdated:4}]);
+t('merge old preamble',A.mergeBackup(nb,{preamble:'P',preambleUpdated:2,notes:[]}).book,null);
+t('merge junk',A.mergeBackup(nb,'nope').notes,[]);
+console.log(fails?fails+' failing':'all core tests pass');
