@@ -88,6 +88,9 @@ span.pt-math{cursor:text}
 .keys{display:flex;gap:6px;overflow-x:auto;flex:none;background:var(--chrome);border-top:1px solid var(--line);scrollbar-width:none;
   padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
 .keys::-webkit-scrollbar{display:none}
+.nums{padding-bottom:0}
+.nums+.keys{border-top:0}
+.nums .key{flex:1;min-width:0;padding:0}
 .key{flex:none;min-width:40px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:var(--key);
   font:15px var(--f-mono);display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .key:active{background:var(--src)}
@@ -134,6 +137,7 @@ span.pt-math{cursor:text}
     <button class="btn" id="srcBtn" aria-pressed="false" title="Show all LaTeX source">&lt;/&gt;</button>
   </div>
   <div id="ed"></div>
+  <div class="keys nums" id="nums" role="toolbar" aria-label="Number keys"></div>
   <div class="keys" id="keys" role="toolbar" aria-label="LaTeX keys"></div>
 </div>
 

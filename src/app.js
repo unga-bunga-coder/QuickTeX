@@ -159,11 +159,11 @@ const previewField=StateField.define({
 });
 
 /* ---------- 4. Editing commands: snippets, jump, key row ---------- */
-function insertAtCursor(view, text){
+function insertAtCursor(view, text, userEvent='input.key'){
   const {from,to}=view.state.selection.main;
   if(from!==to && text.includes('¦')) text=text.replace('¦', view.state.sliceDoc(from,to)+'¦');   // wrap selection
   const caret=text.indexOf('¦'), clean=text.replace('¦','');
-  view.dispatch({changes:{from,to,insert:clean}, selection:{anchor:from+(caret>=0?caret:clean.length)}, userEvent:'input.key'});
+  view.dispatch({changes:{from,to,insert:clean}, selection:{anchor:from+(caret>=0?caret:clean.length)}, userEvent});
   view.focus();
 }
 function jump(view){
@@ -247,9 +247,15 @@ const GREEK_KEYS = [{l:'abc', cls:'mode', run:()=>{ S.greek=false; drawKeys() },
   Object.entries({α:'alpha',β:'beta',γ:'gamma',δ:'delta',ε:'varepsilon',θ:'theta',λ:'lambda',μ:'mu',π:'pi',σ:'sigma',
     φ:'varphi',ω:'omega',Δ:'Delta',Σ:'Sigma',Ω:'Omega',Φ:'Phi',ξ:'xi',ρ:'rho',τ:'tau',χ:'chi',ψ:'psi',η:'eta',κ:'kappa',ζ:'zeta'})
     .map(([l,c])=>({l, ins:'\\'+c+' '})));
+// Digits count as typing, so snippets still fire: x then 1 gives x_1.
+const NUM_KEYS = [...'1234567890'].map(d=>({l:d, run:v=>insertAtCursor(v,d,'input.type')}));
 function drawKeys(){
-  const row=$('keys'); row.replaceChildren();
-  for(const k of (S.greek?GREEK_KEYS:KEYS)){
+  drawRow($('nums'), NUM_KEYS);
+  drawRow($('keys'), S.greek?GREEK_KEYS:KEYS);
+}
+function drawRow(row, keys){
+  row.replaceChildren();
+  for(const k of keys){
     const b=document.createElement('button'); b.type='button'; b.className='key'+(k.cls?' '+k.cls:''); b.textContent=k.l;
     b.setAttribute('aria-label',k.t||k.ins||k.l); if(k.t) b.title=k.t;
     const press=()=>{ k.run ? k.run(S.view) : insertAtCursor(S.view,k.ins) };
