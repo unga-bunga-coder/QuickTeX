@@ -40,7 +40,7 @@ so $p$ is even, say $p = 2k$. Then $q^2 = 2k^2$, so $q$ is even too, contradicti
 
 ## How it works
 - maths renders as soon as the cursor leaves it; tap an equation to edit it
-- type mk for inline maths, dm for display maths, bb for **bold**
+- type mk for inline maths, dm for display maths, bb for **bold**, itt for *italic*
 - inside maths: x1 → x_1, xsr → x^2, // → fraction, ;a → α
 - tap ⇥ to jump to the next empty slot`;
 
@@ -148,7 +148,8 @@ function inMathAt(src,pos){
 const SNIPPETS = [
   {k:'mk', r:'$¦$', mode:'t', word:true, info:'inline maths'},
   {k:'dm', r:'$$\n¦\n$$', mode:'t', word:true, info:'display maths'},
-  {k:'bb', r:'**¦**', mode:'t', word:true, info:'bold (also *italic*, `code`)'},
+  {k:'bb', r:'**¦**', mode:'t', word:true, info:'bold'},
+  {k:'itt', r:'*¦*', mode:'t', word:true, info:'italic (backticks give `code`)'},
   {k:'ali', r:'\\begin{align*}\n¦\n\\end{align*}', mode:'t', word:true, info:'align* block (use &= and \\\\)'},
   {k:'sr', r:'^2', mode:'m', info:'squared'},
   {k:'cb', r:'^3', mode:'m', info:'cubed'},
