@@ -15,6 +15,7 @@ t('xbar',A.expandSnippet('$xbar',true),{del:4,ins:'\\overline{x}'});
 t('<=>',A.expandSnippet('$a \\le >',true),{del:5,ins:'\\iff '});
 t('jump',[A.jumpTarget('\\frac{a}{}',7),A.jumpTarget('$x$ m',2),A.jumpTarget('**bold** x',6),A.jumpTarget('*it* x',3)],[9,3,8,4]);
 t('itt',[A.expandSnippet('so itt',false),A.expandSnippet('(ii',false),A.expandSnippet('Pitt',false)],[{del:3,ins:'*¦*'},null,null]);
+t('tt',[A.expandSnippet('$x>0 tt',true),A.expandSnippet('$x_tt',true),A.expandSnippet('$x^{tt',true)],[{del:2,ins:'\\text{ ¦ }'},{del:2,ins:'\\text{¦}'},{del:2,ins:'\\text{¦}'}]);
 t('bb',[A.expandSnippet('a bb',false),A.expandSnippet('hobb',false),A.expandSnippet('$bb',true)],[{del:2,ins:'**¦**'},null,null]);
 t('format',A.formatSpans('a **b** and *it* `c` x',10).map(s=>[s.kind,s.from,s.to,s.mark]),[['b',12,17,2],['i',22,26,1],['c',27,30,1]]);
 t('format strict',A.formatSpans('a * b * c, 2*3*4, ****, ** x **',0).map(s=>s.kind+':'+s.from),['i:12']);

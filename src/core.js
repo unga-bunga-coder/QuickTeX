@@ -144,7 +144,8 @@ function inMathAt(src,pos){
 }
 
 /* Snippets in the spirit of Gilles Castel's UltiSnips setup. ¦ marks where the caret lands.
-   mode: m = only inside maths, t = only in text. word: trigger must not follow a letter. */
+   mode: m = only inside maths, t = only in text. word: trigger must not follow a letter.
+   sub: replacement used right after _ or ^, where padding spaces would show. */
 const SNIPPETS = [
   {k:'mk', r:'$¦$', mode:'t', word:true, info:'inline maths'},
   {k:'dm', r:'$$\n¦\n$$', mode:'t', word:true, info:'display maths'},
@@ -188,7 +189,7 @@ const SNIPPETS = [
   {k:'part', r:'\\partial ', mode:'m', word:true, info:'∂'},
   {k:'ddx', r:'\\deriv{¦}{x}', mode:'m', word:true, info:'d/dx'},
   {k:'ee', r:'e^{¦}', mode:'m', word:true, info:'exponential'},
-  {k:'tt', r:'\\text{¦}', mode:'m', word:true, info:'text inside maths'},
+  {k:'tt', r:'\\text{ ¦ }', sub:'\\text{¦}', mode:'m', word:true, info:'text inside maths, spaced (not in _ or ^)'},
   {k:'abs', r:'\\abs{¦}', mode:'m', word:true, info:'|x|'},
   {k:'norm', r:'\\norm{¦}', mode:'m', word:true, info:'‖x‖'},
   {k:'pmat', r:'\\begin{pmatrix} ¦ \\end{pmatrix}', mode:'m', word:true, info:'matrix ( ), use & and \\\\'},
@@ -223,7 +224,7 @@ function expandSnippet(before, inMath){
     const pre=before.slice(0,-s.k.length);
     if(/^[A-Za-z]/.test(s.k) && inCmd(pre)) continue;
     if(s.word && /[A-Za-z]$/.test(pre)) continue;
-    return {del:s.k.length, ins:s.r};
+    return {del:s.k.length, ins: s.sub && /[_^]\{?$/.test(pre) ? s.sub : s.r};
   }
   return null;
 }
