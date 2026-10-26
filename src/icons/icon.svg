@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Pocket TeX icon: ruled paper, red margin line, an integral sign. Full bleed, so it also works as a maskable icon. -->
+  <!-- QuickTeX icon: ruled paper, red margin line, an integral sign. Full bleed, so it also works as a maskable icon. -->
   <defs>
     <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
       <path d="M32 0H0V32" fill="none" stroke="#26468c" stroke-opacity=".12" stroke-width="2"/>

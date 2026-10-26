@@ -27,7 +27,7 @@ for (const f of readdirSync("src/icons").filter(f => f.endsWith(".png"))) copy("
 const page = readFileSync("src/page.html", "utf8");
 const token = name => [...page.matchAll(new RegExp(`--${name}:(#[0-9a-f]{6})`, "gi"))].map(m => m[1]);   // [light, dark, dark]
 write("manifest.webmanifest", JSON.stringify({
-  name: "Pocket TeX", short_name: "Pocket TeX", description: "A LaTeX maths notebook with live preview.",
+  name: "QuickTeX", short_name: "QuickTeX", description: "A LaTeX maths notebook with live preview.",
   start_url: "./", scope: "./", display: "standalone",
   theme_color: token("chrome")[0], background_color: token("paper")[0],
   icons: [

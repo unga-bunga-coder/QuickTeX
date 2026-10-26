@@ -362,14 +362,14 @@ function wireUI(){
     download(name+'.tex', toLatex(docText(),S.nb.preamble), 'application/x-tex'); closeAll();
   };
   $('exportBtn').onclick=()=>{
-    const data={app:'pocket-tex', version:1, exported:new Date().toISOString(),
+    const data={app:'quicktex', version:1, exported:new Date().toISOString(),
       preamble:S.nb.preamble, preambleUpdated:S.nb.preambleUpdated||0, notes:sortedNotes()};
-    download('pocket-tex-notes-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(data,null,1), 'application/json'); closeAll();
+    download('quicktex-notes-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(data,null,1), 'application/json'); closeAll();
   };
   $('importBtn').onclick=()=>$('importFile').click();
   $('importFile').onchange=async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f) return;
-    let data; try{ data=JSON.parse(await f.text()) }catch{ toast("That isn't a Pocket TeX backup"); return }
+    let data; try{ data=JSON.parse(await f.text()) }catch{ toast("That isn't a QuickTeX backup"); return }
     importBackup(data);
   };
   if(window.visualViewport){ visualViewport.addEventListener('resize',fitViewport); visualViewport.addEventListener('scroll',fitViewport) }
