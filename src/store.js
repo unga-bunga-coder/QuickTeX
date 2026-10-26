@@ -1,7 +1,7 @@
 /* =====================================================================
    STORE: notes on this device, in IndexedDB. No DOM, no editor.
-   Database "pockettex": store "notes" holds Note by id, store "meta" holds
-   preamble, preambleUpdated, last (open note id) and v (set once migrated).
+   Database "quicktex": store "notes" holds Note by id, store "meta" holds
+   preamble, preambleUpdated, last (open note id) and v (set on first run).
    ===================================================================== */
 "use strict";
 const Store = {
@@ -15,9 +15,9 @@ const Store = {
     }).catch(e=>this.onError(e));
   },
 
-  /** Opens the database and returns the notebook. The first run copies notes over from localStorage. */
+  /** Opens the database and returns the notebook. */
   async open(){
-    const r=indexedDB.open('pockettex',1);
+    const r=indexedDB.open('quicktex',1);
     r.onupgradeneeded=()=>{ r.result.createObjectStore('notes',{keyPath:'id'}); r.result.createObjectStore('meta') };
     this.db=await this.req(r);
     const t=this.db.transaction(['notes','meta']), meta=t.objectStore('meta');
@@ -26,18 +26,8 @@ const Store = {
     const nb={notes:Object.fromEntries(notes.map(n=>[n.id,n])), preamble:m.preamble, preambleUpdated:m.preambleUpdated, last:m.last};
     if(m.v) return nb;
 
-    // First run. The old localStorage copy is left in place as a backup; the "v" flag stops a second migration.
-    let old=null; try{ old=JSON.parse(localStorage.getItem('pockettex.v1')||'null') }catch{}
-    if(old && old.notes && typeof old.notes==='object'){
-      for(const [id,n] of Object.entries(old.notes)) if(n && typeof n.body==='string') nb.notes[id]={id, body:n.body, created:n.created||n.updated||0, updated:n.updated||0};
-      Object.assign(nb,{preamble:old.preamble, preambleUpdated:old.preambleUpdated, last:old.last});
-    }
-    await this.tx(['notes','meta'],t=>{
-      for(const n of Object.values(nb.notes)) t.objectStore('notes').put(n);
-      const meta=t.objectStore('meta');
-      for(const k of ['preamble','preambleUpdated','last']) if(nb[k]!=null) meta.put(nb[k],k);
-      meta.put(1,'v');
-    });
+    // First run: ask the browser not to evict our storage.
+    await this.setMeta({v:1});
     try{ navigator.storage.persist().catch(()=>{}) }catch{}
     return nb;
   },

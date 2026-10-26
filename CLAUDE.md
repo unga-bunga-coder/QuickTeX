@@ -7,7 +7,7 @@ Gilles Castel-style snippets (mk, dm, x1 → x_1, sr, //, ;a → α, …) and a 
 ## Layout
 
 - `src/core.js`: pure logic (block parsing, maths detection, snippets, jump, .tex export, backup merge). No DOM, no storage. Tested by `test-core.mjs`.
-- `src/store.js`: notes in IndexedDB (`pockettex` database; storage names keep the old name so existing notes and caches carry over), plus the one-time migration from the old `pockettex.v1` localStorage key.
+- `src/store.js`: notes in IndexedDB (`quicktex` database).
 - `src/app.js`: edges. MathJax renderer, CodeMirror 6 live-preview editor (decorations + widgets), UI, export/import, service worker registration and update prompt.
 - `src/vendor.js`: the CodeMirror exports, bundled to a global `CM`.
 - `src/page.html`: the document, styles and markup; `/*FONTS*/ /*VENDOR*/ /*CORE*/ /*STORE*/ /*APP*/` placeholders.
