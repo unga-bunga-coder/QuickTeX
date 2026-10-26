@@ -14,7 +14,8 @@ Gilles Castel-style snippets (mk, dm, x1 → x_1, sr, //, ;a → α, …) and a 
 - `src/sw.js`: service worker, cache-first. The build prepends `VERSION` (hash of the cached files) and `FILES`.
 - `src/icons/`: `icon.svg` is the source; the PNGs (512, 192, 180 apple-touch) were rasterised from it with headless Chrome.
 - `build.mjs`: writes the site to `dist/`: `index.html` with everything inlined, `mathjax.js` (MathJax 3 `es5/tex-svg-full.js`),
-  `fonts/` (woff2 from @fontsource), `icons/`, `manifest.webmanifest` (theme colours read from the CSS tokens), `sw.js`.
+  `fonts/` (woff2 from @fontsource), `icons/`, `manifest.webmanifest` (theme colours read from the CSS tokens), `sw.js`,
+  and `THIRD_PARTY_LICENSES.txt` (licence notices for every package bundled, found via the esbuild metafile).
 
 Dependency rule: `app.js` uses `core.js` and `store.js`, never the reverse.
 

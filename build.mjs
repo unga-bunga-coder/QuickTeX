@@ -1,11 +1,11 @@
 // Builds the site in dist/: index.html (CodeMirror bundle, core, store and app inlined), MathJax, fonts,
-// manifest, icons, and a service worker whose cache name is a hash of everything it caches.
+// manifest, icons, THIRD_PARTY_LICENSES.txt, and a service worker whose cache name is a hash of everything it caches.
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 
-await build({ entryPoints: ["src/vendor.js"], bundle: true, minify: true, format: "iife",
-              globalName: "CM", outfile: "build/vendor.js", logLevel: "warning" });
+const vendor = await build({ entryPoints: ["src/vendor.js"], bundle: true, minify: true, format: "iife",
+              globalName: "CM", outfile: "build/vendor.js", logLevel: "warning", metafile: true });
 
 rmSync("dist", { recursive: true, force: true });
 for (const d of ["dist/fonts", "dist/icons"]) mkdirSync(d, { recursive: true });
@@ -47,6 +47,18 @@ const html = page
   .replace("/*APP*/", () => read("src/app.js"));
 writeFileSync("dist/index.html", html);
 shell.unshift("./");
+
+// Licence notices for everything the site redistributes: each package esbuild bundled, MathJax and the fonts.
+const pkgs = new Set(Object.keys(vendor.metafile.inputs).map(f => f.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/)?.[1]).filter(Boolean));
+for (const p of ["mathjax", "@fontsource/jetbrains-mono", "@fontsource/stix-two-text"]) pkgs.add(p);
+const notices = [...pkgs].sort().map(p => {
+  const dir = "node_modules/" + p, file = readdirSync(dir).find(f => /^licen[cs]e/i.test(f));
+  if (!file) throw new Error("no licence file in " + p);
+  const title = `${p} ${JSON.parse(readFileSync(dir + "/package.json", "utf8")).version}`;
+  return `${title}\n${"=".repeat(title.length)}\n\n${readFileSync(dir + "/" + file, "utf8").trim()}`;
+});
+writeFileSync("dist/THIRD_PARTY_LICENSES.txt",
+  "QuickTeX redistributes the following open source software. Their licence notices follow.\n\n\n" + notices.join("\n\n\n") + "\n");
 
 const hash = createHash("sha256");
 for (const f of shell) hash.update(f).update(readFileSync("dist/" + (f === "./" ? "index.html" : f)));
