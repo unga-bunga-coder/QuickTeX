@@ -91,6 +91,7 @@ span.pt-math{cursor:text}
 .nums{padding-bottom:0}
 .nums+.keys{border-top:0}
 .nums .key{flex:1;min-width:0;padding:0}
+@media (hover:hover) and (pointer:fine){.nums{display:none}}   /* mouse or trackpad: a real keyboard has a number row */
 .key{flex:none;min-width:40px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:var(--key);
   font:15px var(--f-mono);display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .key:active{background:var(--src)}
