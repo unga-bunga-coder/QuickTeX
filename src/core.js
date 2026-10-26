@@ -40,7 +40,7 @@ so $p$ is even, say $p = 2k$. Then $q^2 = 2k^2$, so $q$ is even too, contradicti
 
 ## How it works
 - maths renders as soon as the cursor leaves it; tap an equation to edit it
-- type mk for inline maths, dm for display maths
+- type mk for inline maths, dm for display maths, bb for **bold**
 - inside maths: x1 → x_1, xsr → x^2, // → fraction, ;a → α
 - tap ⇥ to jump to the next empty slot`;
 
@@ -148,6 +148,7 @@ function inMathAt(src,pos){
 const SNIPPETS = [
   {k:'mk', r:'$¦$', mode:'t', word:true, info:'inline maths'},
   {k:'dm', r:'$$\n¦\n$$', mode:'t', word:true, info:'display maths'},
+  {k:'bb', r:'**¦**', mode:'t', word:true, info:'bold (also *italic*, `code`)'},
   {k:'ali', r:'\\begin{align*}\n¦\n\\end{align*}', mode:'t', word:true, info:'align* block (use &= and \\\\)'},
   {k:'sr', r:'^2', mode:'m', info:'squared'},
   {k:'cb', r:'^3', mode:'m', info:'cubed'},
@@ -226,18 +227,31 @@ function expandSnippet(before, inMath){
   return null;
 }
 
-/** Where ⇥ moves the caret: into the next {}, else past the next } or $. */
+/** Where ⇥ moves the caret: into the next {}, else past the next }, $ or * (closing maths or bold). */
 function jumpTarget(src,pos){
-  const close=src.indexOf('}',pos), dollar=src.indexOf('$',pos), nl=src.indexOf('\n',pos);
-  if(close>=0 && (dollar<0||close<dollar)) return src[close+1]==='{' ? close+2 : close+1;
-  if(dollar>=0){ let p=dollar; while(src[p]==='$') p++; return p }
+  const close=src.indexOf('}',pos), nl=src.indexOf('\n',pos), d=src.slice(pos).search(/[$*]/), delim=d<0?-1:pos+d;
+  if(close>=0 && (delim<0||close<delim)) return src[close+1]==='{' ? close+2 : close+1;
+  if(delim>=0){ let p=delim; while(src[p]===src[delim]) p++; return p }
   return nl>=0 ? nl : src.length;
 }
 
 function titleOf(body){
   const line=(body.split('\n').find(l=>l.trim())||'').replace(/^#+\s*/,'')
-    .replace(/^([a-z]+)[:.]\s*/i,(m,k)=>ENVS[k.toLowerCase()]?'':m).trim();
+    .replace(/^([a-z]+)[:.]\s*/i,(m,k)=>ENVS[k.toLowerCase()]?'':m)
+    .replace(new RegExp(FORMAT,'g'),(m,b,i,c)=>b??i??c).trim();
   return line.slice(0,60) || 'Untitled';
+}
+
+/** **bold**, *italic* and `code` in a piece of prose (a text token, never maths), offset by `base`.
+    Like Markdown, the markers must hug the text: "a * b * c" is not italic. */
+const FORMAT=/\*\*(\S(?:.*?\S)?)\*\*|\*([^\s*](?:[^*\n]*?[^\s*])?)\*|`([^`\n]+)`/;
+function formatSpans(text, base=0){
+  const re=new RegExp(FORMAT,'g'), out=[]; let m;
+  while((m=re.exec(text))){
+    const kind = m[1]!=null ? 'b' : m[2]!=null ? 'i' : 'c', mark = kind==='b' ? 2 : 1;
+    out.push({kind, from:base+m.index, to:base+m.index+m[0].length, mark});
+  }
+  return out;
 }
 
 /** Convert a note to a standalone LaTeX document. */

@@ -127,7 +127,16 @@ function buildDecorations(state){
       }
     }
     for(const t of tokenize(b.src,b.start)){
-      if(t.t!=='math' || t.from<hidden[1]) continue;
+      if(t.t==='text'){
+        // **bold**, *italic*, `code`: markers hide unless the caret touches the span, then show dimmed.
+        for(const f of formatSpans(t.v,t.from)){
+          if(f.from<hidden[1]) continue;
+          const a=f.from+f.mark, z=f.to-f.mark, marker=touch(f.from,f.to) ? Decoration.mark({class:'pt-fmt'}) : Decoration.replace({});
+          out.push(marker.range(f.from,a), Decoration.mark({class:'pt-'+f.kind}).range(a,z), marker.range(z,f.to));
+        }
+        continue;
+      }
+      if(t.from<hidden[1]) continue;
       if(t.open || touch(t.from,t.to)){ if(t.to>t.from) out.push(Decoration.mark({class:'pt-src'}).range(t.from,t.to)); continue }
       const block = t.d && t.from===doc.lineAt(t.from).from && t.to===doc.lineAt(t.to).to;
       out.push(Decoration.replace({widget:new MathWidget(t.v,t.d,block,t.innerFrom-t.from,TeX.ver),block}).range(t.from,t.to));

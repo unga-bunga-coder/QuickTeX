@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs"; import vm from "node:vm";
-const ctx={console}; vm.createContext(ctx); vm.runInContext(readFileSync("src/core.js","utf8")+";this.api={parseBlocks,tokenize,findMath,inMathAt,expandSnippet,jumpTarget,titleOf,toLatex,mergeBackup,WELCOME}",ctx);
+const ctx={console}; vm.createContext(ctx); vm.runInContext(readFileSync("src/core.js","utf8")+";this.api={parseBlocks,tokenize,findMath,inMathAt,expandSnippet,jumpTarget,titleOf,toLatex,mergeBackup,formatSpans,WELCOME}",ctx);
 const A=ctx.api; let fails=0;
 const t=(name,a,b)=>{ const ok=JSON.stringify(a)===JSON.stringify(b); if(!ok){fails++; console.log('FAIL',name,JSON.stringify(a),'expected',JSON.stringify(b))} };
 t('blocks',A.parseBlocks(A.WELCOME).map(b=>b.kind+(b.num||'')).join(' '),'heading env1 env2 env heading list');
@@ -13,8 +13,11 @@ t('x12',A.expandSnippet('$x_12',true),{del:4,ins:'x_{12}'});
 t('\\sq',A.expandSnippet('$\\sq',true),null);
 t('xbar',A.expandSnippet('$xbar',true),{del:4,ins:'\\overline{x}'});
 t('<=>',A.expandSnippet('$a \\le >',true),{del:5,ins:'\\iff '});
-t('jump',[A.jumpTarget('\\frac{a}{}',7),A.jumpTarget('$x$ m',2)],[9,3]);
-t('title',A.titleOf(A.WELCOME),'Example: why √2 is irrational');
+t('jump',[A.jumpTarget('\\frac{a}{}',7),A.jumpTarget('$x$ m',2),A.jumpTarget('**bold** x',6)],[9,3,8]);
+t('bb',[A.expandSnippet('a bb',false),A.expandSnippet('hobb',false),A.expandSnippet('$bb',true)],[{del:2,ins:'**¦**'},null,null]);
+t('format',A.formatSpans('a **b** and *it* `c` x',10).map(s=>[s.kind,s.from,s.to,s.mark]),[['b',12,17,2],['i',22,26,1],['c',27,30,1]]);
+t('format strict',A.formatSpans('a * b * c, 2*3*4, ****, ** x **',0).map(s=>s.kind+':'+s.from),['i:12']);
+t('title',[A.titleOf(A.WELCOME),A.titleOf('Note **key** and *it* `c`, 2 * 3')],['Example: why √2 is irrational','Note key and it c, 2 * 3']);
 t('tex',A.toLatex(A.WELCOME,'').includes('\\begin{proof}\nSuppose'),true);
 const nb={notes:{a:{id:'a',body:'old',created:1,updated:5},b:{id:'b',body:'mine',created:1,updated:9}},preambleUpdated:3};
 const mg=A.mergeBackup(nb,{preamble:'P',preambleUpdated:4,notes:[{id:'a',body:'new',created:1,updated:6},{id:'b',body:'theirs',updated:8},
