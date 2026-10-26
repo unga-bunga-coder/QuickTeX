@@ -284,7 +284,10 @@ function renderNoteList(){
     li.append(open,del); ul.append(li);
   }
 }
-function openDrawer(){ renderNoteList(); setStatus(); $('drawer').hidden=false; $('scrim').hidden=false }
+/** Number row: auto (CSS decides from the pointer) until the user picks, then 'show' or 'hide' on this device. */
+const numsShown=()=>getComputedStyle($('nums')).display!=='none';
+function setNums(mode){ $('nums').dataset.mode=mode||''; $('numsBtn').textContent=numsShown()?'Hide numbers':'Show numbers' }
+function openDrawer(){ renderNoteList(); setStatus(); setNums(S.nb.nums); $('drawer').hidden=false; $('scrim').hidden=false }
 function openSheet(id){ $('drawer').hidden=true; $('scrim').hidden=false; $(id).hidden=false }
 function closeAll(){ document.querySelectorAll('.sheet').forEach(s=>s.hidden=true); $('drawer').hidden=true; $('scrim').hidden=true }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200) }
@@ -337,6 +340,7 @@ function wireUI(){
   };
   $('macrosBtn').onclick=()=>{ $('preambleInput').value=S.nb.preamble; $('preambleErr').textContent=''; openSheet('macroSheet') };
   $('cheatBtn').onclick=()=>openSheet('cheatSheet');
+  $('numsBtn').onclick=()=>{ S.nb.nums=numsShown()?'hide':'show'; Store.setMeta({nums:S.nb.nums}); setNums(S.nb.nums) };
   for(const id of ['macroDone','cheatDone','texDone']) $(id).onclick=()=>{ closeAll(); S.view.focus() };
 
   let t;
@@ -413,7 +417,7 @@ function registerWorker(){
     const id=newId(); S.nb.notes[id]={id,body:WELCOME,created:now(),updated:now()}; Store.putNote(S.nb.notes[id]);
   }
   S.view=new EditorView({parent:$('ed')});
-  drawKeys(); drawCheat(); wireUI(); fitViewport();
+  drawKeys(); drawCheat(); wireUI(); setNums(S.nb.nums); fitViewport();
   openNote(S.nb.notes[S.nb.last] ? S.nb.last : sortedNotes()[0].id);
   if($('status').textContent==='loading') setStatus();
 })();

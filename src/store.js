@@ -1,7 +1,8 @@
 /* =====================================================================
    STORE: notes on this device, in IndexedDB. No DOM, no editor.
    Database "quicktex": store "notes" holds Note by id, store "meta" holds
-   preamble, preambleUpdated, last (open note id) and v (set on first run).
+   preamble, preambleUpdated, last (open note id), nums (number row: 'show', 'hide'
+   or unset for auto) and v (set on first run).
    ===================================================================== */
 "use strict";
 const Store = {
@@ -23,7 +24,7 @@ const Store = {
     const t=this.db.transaction(['notes','meta']), meta=t.objectStore('meta');
     const [notes,keys,vals]=await Promise.all([this.req(t.objectStore('notes').getAll()), this.req(meta.getAllKeys()), this.req(meta.getAll())]);
     const m=Object.fromEntries(keys.map((k,i)=>[k,vals[i]]));
-    const nb={notes:Object.fromEntries(notes.map(n=>[n.id,n])), preamble:m.preamble, preambleUpdated:m.preambleUpdated, last:m.last};
+    const nb={notes:Object.fromEntries(notes.map(n=>[n.id,n])), preamble:m.preamble, preambleUpdated:m.preambleUpdated, last:m.last, nums:m.nums};
     if(m.v) return nb;
 
     // First run: ask the browser not to evict our storage.

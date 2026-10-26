@@ -91,7 +91,8 @@ span.pt-math{cursor:text}
 .nums{padding-bottom:0}
 .nums+.keys{border-top:0}
 .nums .key{flex:1;min-width:0;padding:0}
-@media (hover:hover) and (pointer:fine){.nums{display:none}}   /* mouse or trackpad: a real keyboard has a number row */
+@media (hover:hover) and (pointer:fine){.nums:not([data-mode="show"]){display:none}}   /* auto: a mouse or trackpad means a real keyboard */
+.nums[data-mode="hide"]{display:none}
 .key{flex:none;min-width:40px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:var(--key);
   font:15px var(--f-mono);display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .key:active{background:var(--src)}
@@ -149,6 +150,7 @@ span.pt-math{cursor:text}
   <footer>
     <button class="btn" id="macrosBtn">Macros</button>
     <button class="btn" id="cheatBtn">Shortcuts</button>
+    <button class="btn" id="numsBtn"></button>
     <button class="btn" id="copyTexBtn">Copy .tex</button>
     <button class="btn" id="saveTexBtn">Save .tex</button>
     <button class="btn" id="exportBtn">Export all notes</button>
